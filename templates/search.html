@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {font-family: Arial, Helvetica, sans-serif;}
+
+/* Full-width input fields */
+input[type=text], input[type=password] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* Set a style for all buttons */
+button {
+  background-color: #04AA6D;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Set a style for all selects */
+select {
+  background-color: #04AA6D;
+  color: white;
+  padding: 12px 10px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width:auto;
+  text-align:left;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+/* Extra styles for the cancel button */
+.cancelbtn {
+  width: auto;
+  padding: 10px 18px;
+  background-color: #f44336;
+}
+
+/* Center the image and position the close button */
+.imgcontainer {
+  text-align: center;
+  margin: 24px 0 12px 0;
+  position: relative;
+}
+
+.container {
+  padding: 16px;
+}
+
+span.psw {
+  float: right;
+  padding-top: 16px;
+}
+
+/* The Modal (background) */
+.modal {
+  <!--display: none; /* Hidden by default */ -->
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  padding-top: 60px;
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #fefefe;
+  margin: 5% auto 5% auto; /* 5% from the top, 15% from the bottom and centered */
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button (x) */
+.close {
+  position: absolute;
+  right: 25px;
+  top: 0;
+  color: #000;
+  font-size: 35px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: red;
+  cursor: pointer;
+}
+
+.attribute {
+	float:left;
+	margin-left:1%;
+	background-color: #04AA6D;
+	color: white;
+	width:150px;
+	padding: 2px 2px;
+}
+
+.wrongAttribute {
+  float:left;
+  margin-left:1%;
+  background-color: #f44336;
+  color: white;
+  width:150px;
+  padding: 2px 2px;
+}
+
+/* Add Zoom Animation */
+.animate {
+  -webkit-animation: animatezoom 0.6s;
+  animation: animatezoom 0.6s
+}
+
+@-webkit-keyframes animatezoom {
+  from {-webkit-transform: scale(0)} 
+  to {-webkit-transform: scale(1)}
+}
+  
+@keyframes animatezoom {
+  from {transform: scale(0)} 
+  to {transform: scale(1)}
+}
+
+/* Change styles for span and cancel button on extra small screens */
+@media screen and (max-width: 300px) {
+  span.psw {
+     display: block;
+     float: none;
+  }
+  .cancelbtn {
+     width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+ 
+<!-- <h2>Modal Login Form</h2> -->
+
+<!-- <button onclick="document.getElementById('id01').style.display='block'" style="width:auto;">Login</button> -->
+
+	<div class="topnav">
+	  <input id="query" type="text" placeholder="Search.." style="width:20%;">
+	  <button style="width:auto; margin-left:16px" id="send_button">Ok</button>
+	
+	  
+	  <label style='margin-left:16px' for="cat">Category:</label>
+          <select id="cat"style="margin-left:2px" name="cat">
+              {% for cat in cats %}
+                <option>{{ cat[0] }}</option>
+              {% endfor %}
+          </select>
+
+
+	  <label style='margin-left:16px' for="model">Model Type:</label>
+	  <select id="model_type"style="margin-left:2px" name="model">
+		<option value="yandex_cat">Category attributes</option>
+		<option value="yandex_all">All attributes</option>
+		<option value="bert">BERT</option>
+	  </select>
+
+	  <button style="width:auto; margin-left:16px" id="search_button">Search</button>
+	</div>
+
+	<script>
+        const search_button = document.getElementById("search_button");
+
+        search_button.addEventListener('click', async () => {
+
+            var cat = document.getElementById("cat").value;
+
+			var attrib = new Object();
+			var wrong_attrib = new Object(); //TODO: Нужно ещё учитывать какого цвета атрибут. Ищем только по зеленым
+            const table = document.getElementById("attr");
+			for (const child of table.children) {
+			  //console.log(child.tagName);
+			  console.log(child.children[0].innerHTML, child.children[1].value);
+			  attrib[child.children[0].innerHTML] = child.children[1].value;
+			}
+
+			console.log(attrib);
+            console.log(cat);
+
+            try {
+                const response = await fetch('search_es', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ "cat": cat, "attrib": attrib })
+                })
+                const answer = await response.json();
+                console.log(answer);
+                const table = document.getElementById("attr");
+                table.innerHTML = ''
+                for (const [key, value] of Object.entries(answer)) {
+                	if (value!="n/a") {
+						console.log(key, value)
+						var form = document.createElement("form");
+						form.id = key
+						form.className = "attribute"
+						form.addEventListener('click', () => {change_color(key)})
+
+						var lab = document.createElement("label");
+						lab.contentEditable = 'true'
+						lab.style = "margin-left:5%;"
+						lab.innerHTML = key
+						var inp = document.createElement("input");
+						inp.style = "margin-left:1.5%;width:90%"
+						inp.value = value
+						form.append(lab)
+						form.append(inp)
+						table.append(form)
+                	}
+                }
+            } catch (error) {
+                alert(error);
+            }
+        });
+    </script>
+
+	<script>
+        const send_button = document.getElementById("send_button");
+
+        send_button.addEventListener('click', async () => {
+
+            var model_type = document.getElementById("model_type").value;
+            var cat = document.getElementById("cat").value;
+            var query = document.getElementById("query").value;
+            console.log(model_type, cat, query);
+
+            try {
+                const response = await fetch('search_query', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ "model_type": model_type, "cat": cat, "query": query })
+                })
+                const answer = await response.json();
+                console.log(answer);
+                const table = document.getElementById("attr");
+                table.innerHTML = ''
+                for (const [key, value] of Object.entries(answer)) {
+                	if (value!="n/a") {
+						console.log(key, value)
+						var form = document.createElement("form");
+						form.id = key
+						form.className = "attribute"
+						form.addEventListener('click', () => {change_color(key)})
+
+						var lab = document.createElement("label");
+						lab.contentEditable = 'true'
+						lab.style = "margin-left:5%;"
+						lab.innerHTML = key
+						var inp = document.createElement("input");
+						inp.style = "margin-left:1.5%;width:90%"
+						inp.value = value
+						form.append(lab)
+						form.append(inp)
+						table.append(form)
+                	}
+                }
+            } catch (error) {
+                alert(error);
+            }
+        });
+    </script>
+
+	<script>
+	function change_color(id)
+	{
+		console.log(event.target.id)
+		console.log(event.target.id == id)
+		console.log(id, document.getElementById(id).className)
+		if (event.target.id == id) {
+			if (document.getElementById(id).className  == "attribute") {
+				document.getElementById(id).className = "wrongAttribute";
+			}
+			else {
+				document.getElementById(id).className = "attribute";
+			}
+		}
+	}
+	</script>
+
+
+	<div id = "attr" class="topnav" style="padding: 10px 2px;">
+
+		<form id="Color" class="attribute" onclick="change_color('Color')">
+			<label contenteditable='true' style="margin-left:5%;width:90px">Color:</label>
+			<input name="atr" style="margin-left:1.5%;width:90%" value="Red"></input>
+		</form>
+		
+		<form id="Model" class="attribute" onclick="change_color('Model')">
+			<label contenteditable='true' style="margin-left:5%;width:90px">Model:</label>
+			<input name="atr" style="margin-left:1.5%;width:90%" value="Iphone 9"></input>
+		</form>
+		
+		<form id = "Weight" class="wrongAttribute" onclick="change_color('Weight')">
+			<label contenteditable='true' style="margin-left:5%;width:90px">Weight:</label>
+			<input name="atr" style="margin-left:1.5%;width:90%" value="128 g"></input>
+		</form>
+	</div>
+  
+  	<div class="topnav"style="padding: 20px 20px;">
+		<br>
+	</div>
+
+	<table id = "search_table" >
+		<!-----
+	<tr>
+	<div class="topnav" style="border-color:#B4CCCD; border-style:solid; width:800px; height :100px; padding: 2px 2px;">
+		<img style="float:left;" src="Iphone.PNG" alt="Flowers in Chania" width="100" height="100">
+		<form style="float:left;margin-left:5%;width:100px">Title: iPhone XR 128GB/256GB Factory Unlocked ...  </form>
+		<form style="margin-left:5%;width:500px">Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis in elit urna. Donec turpis diam, tempor quis porttitor sit amet, pulvinar nec urna. Ut porttitor turpis commodo leo eleifend, sit amet pulvinar libero egestas. In eget venenatis enim, at pellentesque nisi. Maecenas viverra nibh id tempor interdum. Proin  ...</form>
+	</div>
+	</tr>
+	<tr>
+	<div class="topnav" style="border-color:#B4CCCD; border-style:solid; width:800px; height :100px; padding: 2px 2px; margin-top:2px">
+		<img style="float:left;" src="Iphone.PNG" alt="Flowers in Chania" width="100" height="100">
+		<form style="float:left;margin-left:5%;width:100px">Title: iPhone XR 128GB/256GB Factory Unlocked ...  </form>
+		<form style="margin-left:5%;width:500px">Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis in elit urna. Donec turpis diam, tempor quis porttitor sit amet, pulvinar nec urna. Ut porttitor turpis commodo leo eleifend, sit amet pulvinar libero egestas. In eget venenatis enim, at pellentesque nisi. Maecenas viverra nibh id tempor interdum. Proin  ...</form>
+	</div>
+	</tr>
+	<tr>
+	<div class="topnav" style="border-color:#B4CCCD; border-style:solid; width:800px; height :100px; padding: 2px 2px; margin-top:2px">
+		<img style="float:left;" src="Iphone.PNG" alt="Flowers in Chania" width="100" height="100">
+		<form style="float:left;margin-left:5%;width:100px">Title: iPhone XR 128GB/256GB Factory Unlocked ...  </form>
+		<form style="margin-left:5%;width:500px">Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis in elit urna. Donec turpis diam, tempor quis porttitor sit amet, pulvinar nec urna. Ut porttitor turpis commodo leo eleifend, sit amet pulvinar libero egestas. In eget venenatis enim, at pellentesque nisi. Maecenas viverra nibh id tempor interdum. Proin  ...</form>
+	</div>
+	</tr>
+	<tr>
+	<div class="topnav" style="border-color:#B4CCCD; border-style:solid; width:800px; height :100px; padding: 2px 2px; margin-top:2px">
+		<img style="float:left;" src="Iphone.PNG" alt="Flowers in Chania" width="100" height="100">
+		<form style="float:left;margin-left:5%;width:100px">Title: iPhone XR 128GB/256GB Factory Unlocked ...  </form>
+		<form style="margin-left:5%;width:500px">Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis in elit urna. Donec turpis diam, tempor quis porttitor sit amet, pulvinar nec urna. Ut porttitor turpis commodo leo eleifend, sit amet pulvinar libero egestas. In eget venenatis enim, at pellentesque nisi. Maecenas viverra nibh id tempor interdum. Proin  ...</form>
+	</div>
+	</tr>
+	-->
+	</table>
+
+</body>
+</html>

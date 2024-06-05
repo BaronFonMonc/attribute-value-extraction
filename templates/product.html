@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+
+table, th, td {
+  border:1px solid black;
+}
+
+body {font-family: Arial, Helvetica, sans-serif;}
+
+/* Full-width input fields */
+input[type=text], input[type=password] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* Set a style for all buttons */
+button {
+  background-color: #04AA6D;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Set a style for all selects */
+select {
+  background-color: #04AA6D;
+  color: white;
+  padding: 12px 10px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width:auto;
+  text-align:left;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+/* Extra styles for the cancel button */
+.cancelbtn {
+  width: auto;
+  padding: 10px 18px;
+  background-color: #f44336;
+}
+
+/* Center the image and position the close button */
+.imgcontainer {
+  text-align: center;
+  margin: 24px 0 12px 0;
+  position: relative;
+}
+
+.container {
+  padding: 16px;
+}
+
+span.psw {
+  float: right;
+  padding-top: 16px;
+}
+
+/* The Modal (background) */
+.modal {
+  <!--display: none; /* Hidden by default */ -->
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  padding-top: 60px;
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #fefefe;
+  margin: 5% auto 5% auto; /* 5% from the top, 15% from the bottom and centered */
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button (x) */
+.close {
+  position: absolute;
+  right: 25px;
+  top: 0;
+  color: #000;
+  font-size: 35px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: red;
+  cursor: pointer;
+}
+
+/* Add Zoom Animation */
+.animate {
+  -webkit-animation: animatezoom 0.6s;
+  animation: animatezoom 0.6s
+}
+
+@-webkit-keyframes animatezoom {
+  from {-webkit-transform: scale(0)} 
+  to {-webkit-transform: scale(1)}
+}
+  
+@keyframes animatezoom {
+  from {transform: scale(0)} 
+  to {transform: scale(1)}
+}
+
+/* Change styles for span and cancel button on extra small screens */
+@media screen and (max-width: 300px) {
+  span.psw {
+     display: block;
+     float: none;
+  }
+  .cancelbtn {
+     width: 100%;
+  }
+}
+</style>
+</head>
+<body>
+ 
+<!-- <h2>Modal Login Form</h2> -->
+
+<!-- <button onclick="document.getElementById('id01').style.display='block'" style="width:auto;">Login</button> -->
+
+	<div class="topnav">
+		<button style="width:auto; margin-left:16px" onclick="window.location='/category'">Category</button>
+
+		<button style="width:auto; margin-left:16px" onclick="window.location='/queries'">Queries</button>
+
+		<button style="width:auto; margin-left:16px" onclick="window.location='/product'">Add Product</button>
+	</div>
+	
+
+	<div class="topnav"style="padding: 15px 2px;">
+		<label>Title:</label> <br>
+		<input type="text" placeholder="Name..." id="name" style="width:20%;">
+		<input type="text" placeholder="Id..." id="searchid" style="width:15%;">
+		<button style="width:100px; margin-left:16px" id="search_button">Search</button>
+		<button style="width:100px; margin-left:16px" id="savebutton">Save</button>
+		<button style="width:120px; margin-left:16px" id="attributebutton" onclick="add_row()">Add attribute</button>
+
+        <label style='margin-left:16px' for="fruits">Category:</label>
+          <select id="fruits"style="margin-left:2px" name="fruits">
+              {% for cat in cats %}
+                <option>{{ cat[0] }}</option>
+              {% endfor %}
+          </select>
+	</div>
+  
+  	<div class="topnav"style="padding: 10px 2px;">
+		<label>Description:</label> <br>
+		<textarea id="Text1" cols="40" rows="5"></textarea>
+	</div>
+
+    <script src="static/parseTable.js"></script>
+
+    <script>
+        const send_button = document.getElementById("savebutton");
+
+        send_button.addEventListener('click', async () => {
+
+            var real_table = document.getElementById("table1");
+            var real_data  = parseTable(real_table);
+            var extr_table = document.getElementById("table2");
+            var extr_data  = parseTable(extr_table);
+            console.log(real_data);
+            console.log(extr_data);
+
+            var id = document.getElementById("searchid").value;
+            var name = document.getElementById("name").value;
+            var description = document.getElementById("Text1").value;
+            var url = document.getElementById("url").value;
+            var url_image = document.getElementById("image").value;
+            var category = document.getElementById("fruits").value;
+
+            try {
+                const response = await fetch('product/save', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ "real_data": real_data, "extr_data": extr_data,
+                        "id": id, "name": name, "description": description, "url": url, "url_image": url_image, "category": category })
+                })
+                const answer = await response.json();
+                //alert(answer);
+                document.getElementById("searchid").value = answer;
+                console.log(answer);
+                console.log(document.getElementById("searchid").value);
+
+                const response2 = await fetch('index_product', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ "id": answer[0][0]})
+                })
+                const answer2 = await response2.json();
+                console.log(answer2);
+
+                const table = document.getElementById("table2");
+                    var i = table.rows.length;
+                    var len = table.rows.length;
+                    for (const [key, value] of Object.entries(answer2)) {
+                      console.log(key, value);
+                      var r1 = table.insertRow(i);
+                      var c1 = r1.insertCell(0);
+                      var c2 = r1.insertCell(1);
+                      var id1 = r1.insertCell(2);
+                      c1.contentEditable = 'true';
+                      c2.contentEditable = 'true';
+                      c1.innerHTML = key;
+                      c2.innerHTML = value;
+                      id1.style.display = "none";
+                      i = i+1;
+                    }
+                    for(var i = 1;i<len; i++){
+                        table.deleteRow(1);
+                    }
+            } catch (error) {
+                alert(error);
+            }
+        });
+    </script>
+
+    <script>
+        const search_button = document.getElementById("search_button");
+
+        search_button.addEventListener("click", async () => {
+              var input, filter;
+              input = document.getElementById("url");
+              filter = input.value.toUpperCase();
+              var input2 = document.getElementById("searchid");
+              var filter2 = input2.value.toUpperCase();
+
+            if (filter2 != '') {
+                    try {
+                    const response = await fetch('product/get_by_id', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ "id": filter2 })
+                    })
+                    const answer = await response.json();
+                    console.log(answer);
+                    //const table = document.getElementById("table1");
+                    //const name_field = document.getElementById("name");
+                    //name_field.value = answer[2];
+                    //const description_field = document.getElementById("Text1");
+                    //description_field.value = answer[3];
+                    //category.value = ;
+                } catch (error) {
+                    alert(error);
+                }
+            } else {
+                try {
+                    const response = await fetch('product/get', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ "id": filter })
+                    })
+                    const answer = await response.json();
+                    //alert(answer); 2-Название 3-Описание
+                    console.log(answer);
+                    console.log(answer[1]);
+                    const table = document.getElementById("table1");
+                    var i = table.rows.length;
+                    var len = table.rows.length;
+                    for (const [key, value] of Object.entries(answer[1])) {
+                      console.log(key, value);
+                      var r1 = table.insertRow(i);
+                      var c1 = r1.insertCell(0);
+                      var c2 = r1.insertCell(1);
+                      var id1 = r1.insertCell(2);
+                      c1.contentEditable = 'true';
+                      c2.contentEditable = 'true';
+                      c1.innerHTML = key;
+                      c2.innerHTML = value;
+                      id1.style.display = "none";
+                      i = i+1;
+                    }
+                    for(var i = 1;i<len; i++){
+                        table.deleteRow(1);
+                    }
+                    const name_field = document.getElementById("name");
+                    name_field.value = answer[2];
+                    const description_field = document.getElementById("Text1");
+                    description_field.value = answer[3];
+                } catch (error) {
+                    alert(error);
+                }
+            }
+        });
+    </script>
+
+    <script>
+        function add_row()
+        {
+            var mytable =  document.getElementById("table1");
+            var rows = mytable.rows.length;
+            var r1 = mytable.insertRow(rows);
+            var c1 = r1.insertCell(0);
+            var c2 = r1.insertCell(1);
+            var id1 = r1.insertCell(2);
+            c1.contentEditable = 'true';
+            c2.contentEditable = 'true';
+            c1.innerHTML = 'Название атрибута';
+            c2.innerHTML = 'Значение атрибута';
+            id1.style.display = "none";
+        }
+    </script>
+
+	<table id="table1" style="width:50%">
+    <caption>Real Attributes</caption>
+      <thead>
+          <tr>
+            <th>Attribute</th>
+            <th>Value</th>
+            <th style="display:none" >Id</th>
+          </tr>
+      </thead>
+      <tbody>
+          <tr>
+            <td contenteditable='true'>Название атрибута</td>
+            <td contenteditable='true'>Значение атрибута</td>
+            <td style="display:none" ></td>
+          </tr>
+      </tbody>
+  </table>
+
+<br>
+<br>
+
+   <table id="table2" style="width:50%">
+    <caption>Extracted Attributes</caption>
+      <thead>
+          <tr>
+            <th>Attribute</th>
+            <th>Value</th>
+            <th style="display:none" >Id</th>
+          </tr>
+      </thead>
+       <tbody>
+          <tr>
+            <td>Название атрибута</td>
+            <td contenteditable='true'>Значение атрибута</td>
+            <td style="display:none" ></td>
+          </tr>
+      </tbody>
+  </table>
+  
+  	<form class="topnav"style="padding: 15px 2px;">
+		<label>Url:</label> <br>
+		<input id="url" type="text" style="width:20%;">
+	</form>
+
+  	<form class="topnav"style="padding: 15px 2px;">
+		<label>Image url:</label> <br>
+		<input id="image" type="text" style="width:20%;">
+	</form>
+  
+  <form action="/action_page.php">
+  <label for="img">Select image:</label>
+  <input type="file" id="img" name="img" accept="image/*">
+  <input type="submit">
+  </form>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+</body>
+</html>
